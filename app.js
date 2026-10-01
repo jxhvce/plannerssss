@@ -555,25 +555,62 @@ function openEditor(type,item=null){
 }
 $("#editorForm").addEventListener("submit",e=>{
   e.preventDefault();
+
+  // Structured study note save
   if(e.currentTarget.dataset.mode==="studyNote"){
     const fd=Object.fromEntries(new FormData(e.currentTarget).entries());
     const id=fd.studyNoteId||uid();
-    const obj={id,subject:(fd.studySubject||"").trim(),topic:(fd.studyTopic||"").trim(),notes:fd.studyNotesText||"",updatedAt:Date.now()};
+    const obj={
+      id,
+      subject:(fd.studySubject||"").trim(),
+      topic:(fd.studyTopic||"").trim(),
+      notes:fd.studyNotesText||"",
+      updatedAt:Date.now()
+    };
     data.studyNotes=data.studyNotes||[];
     const idx=data.studyNotes.findIndex(n=>n.id===id);
-    if(idx>=0)data.studyNotes[idx]=obj;else data.studyNotes.push(obj);
+    if(idx>=0) data.studyNotes[idx]=obj;
+    else data.studyNotes.push(obj);
     e.currentTarget.dataset.mode="";
     save();
     closeModals();
     toast("Note saved");
     return;
-  }const fd=Object.fromEntries(new FormData(e.currentTarget).entries());const type=fd.type,id=fd.id||uid();delete fd.type;delete fd.id;
-else{
-    obj.repeat="";
   }
-  delete obj.scheduleMode;
-}
-if(type==="assignment")obj.progress=Number(obj.progress||0);const idx=data.items.findIndex(x=>x.id===id);if(idx>=0)data.items[idx]=obj;else data.items.push(obj)}save();closeModals();toast("Saved")});
+
+  // Normal school item save
+  const fd=Object.fromEntries(new FormData(e.currentTarget).entries());
+  const type=fd.type;
+  const id=fd.id||uid();
+  delete fd.type;
+  delete fd.id;
+
+  const existing=data.items.find(x=>x.id===id);
+  const obj={id,type,done:existing?.done||false,...fd};
+
+  if(type==="class"){
+    obj.weekday=Number(obj.weekday);
+    if(obj.scheduleMode==="Weekly recurring"){
+      obj.repeat="weekly";
+      obj.date="";
+    }else{
+      obj.repeat="";
+    }
+    delete obj.scheduleMode;
+  }
+
+  if(type==="assignment"){
+    obj.progress=Number(obj.progress||0);
+  }
+
+  const idx=data.items.findIndex(x=>x.id===id);
+  if(idx>=0) data.items[idx]=obj;
+  else data.items.push(obj);
+
+  save();
+  closeModals();
+  toast("Saved");
+});
 
 function plannerAnswer(q){
   const s=q.toLowerCase().trim(), tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);const tkey=dateKeyLocal(tomorrow);
@@ -581,7 +618,7 @@ function plannerAnswer(q){
   if(s.includes("next exam")||s.includes("next quiz")){const i=getUpcoming().find(x=>x.type==="exam");return i?`Your next exam is ${i.title} on ${fmt(i.date,{weekday:"long",month:"long",day:"numeric"})}${i.time?` at ${i.time}`:""}.`:"You have no upcoming exams saved."}
   if(s.includes("due this week")||s.includes("tasks this week")){const now=new Date(),end=new Date();end.setDate(end.getDate()+7);const arr=data.items.filter(i=>["task","assignment"].includes(i.type)&&i.date&&dt(i.date,i.time||"23:59")>=now&&dt(i.date,i.time||"23:59")<=end&&!i.done);return arr.length?`Due in the next 7 days: ${arr.map(i=>`${i.title} (${fmt(i.date,{month:"short",day:"numeric"})})`).join("; ")}.`:"Nothing is due in the next 7 days."}
   if(s.includes("today")){const arr=relevantItemsForDate(todayKey());return arr.length?`Today: ${arr.map(i=>`${i.time||"all day"} ${i.title}`).join("; ")}.`:"You have nothing scheduled today."}
-  if(s.includes("free")||s.includes("available")) return "Free-time finding is planned for the cloud-enabled build. I can currently read your saved events, tasks, classes, exams and deadlines.";
+  if(s.includes("free")||s.includes("available")) return "Free-time finding is planned for the cloud-enabled build. I can currently read your saved school tasks, classes, exams and deadlines.";
   return "I can currently answer about today, tomorrow, your next exam, and tasks due this week. The AI-connected version can later understand broader natural-language requests.";
 }
 
@@ -592,7 +629,7 @@ document.addEventListener("click",e=>{
   if(editStudy){const note=(data.studyNotes||[]).find(n=>n.id===editStudy);if(note)openStudyNoteEditor(note);return}
   const subj=e.target.closest("[data-subject-filter]")?.dataset.subjectFilter;
   if(subj){activeSubjectFilter=subj;renderStudyNotes();return}
-  const edit=e.target.closest("[data-edit]")?.dataset.edit;if(edit){const item=data.items.find(x=>x.id===edit)||data.periodLogs.find(x=>x.id===edit);if(item)openEditor(item.type,item);return}
+  const edit=e.target.closest("[data-edit]")?.dataset.edit;if(edit){const item=data.items.find(x=>x.id===edit);if(item)openEditor(item.type,item);return}
   const toggle=e.target.closest("[data-toggle-task]")?.dataset.toggleTask;if(toggle){const i=data.items.find(x=>x.id===toggle);if(i){i.done=!i.done;save()}return}
   const sticker=e.target.closest("[data-place-sticker]")?.dataset.placeSticker;if(sticker){data.stickerInstances.push({id:uid(),assetId:sticker,x:40,y:180,w:90});save();switchView("home");toast("Sticker added — drag it anywhere");return}
   if(e.target.classList.contains("modal-close")||e.target.classList.contains("editor-close"))closeModals();

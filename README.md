@@ -169,3 +169,10 @@ If Supabase says a policy already exists, do not recreate that same policy.
   - Filter by subject
   - Edit/delete notes
 - Subject notes sync through the same Supabase planner data.
+
+
+## v2.7.1 hotfix
+- Fixed a JavaScript syntax error introduced in v2.7 that prevented authentication and the entire app script from loading.
+- Supabase login/sync is restored.
+- School-only planner and Subject Notes remain enabled.
+- Service-worker cache bumped to force browsers to fetch the repaired app.

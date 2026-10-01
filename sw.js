@@ -1,4 +1,4 @@
-const CACHE="life-planner-v2.5";
+const CACHE="life-planner-v2.7.1";
 const ASSETS=["./","./index.html","./style.css","./app.js","./manifest.webmanifest","./icon.svg"];
 
 self.addEventListener("install",event=>{
