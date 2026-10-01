@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Life Planner">
+  <title>Life Planner</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app" class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="logo" id="brandLogo"><span id="brandLogoText">LP</span><img id="brandLogoImage" class="hidden" alt="Custom icon"></div>
+        <div>
+          <strong id="brandTitle">我的一天 ♡</strong>
+          <span id="brandSubtitle">我的小小生活簿 ✿</span>
+        </div>
+      </div>
+
+      <nav class="nav" id="nav">
+        <button class="nav-btn active" data-view="home">⌂ <span data-label-key="navHome">Home</span></button>
+        <button class="nav-btn" data-view="calendar">▣ <span data-label-key="navCalendar">Calendar</span></button>
+        <button class="nav-btn" data-view="tasks">✓ <span data-label-key="navTasks">Tasks</span></button>
+        <div class="nav-label" data-label-key="groupSchool">SCHOOL</div>
+        <button class="nav-btn" data-view="timetable">▤ <span data-label-key="navTimetable">Timetable</span></button>
+        <button class="nav-btn" data-view="assignments">◫ <span data-label-key="navAssignments">Assignments</span></button>
+        <button class="nav-btn" data-view="exams">◇ <span data-label-key="navExams">Exams</span></button>
+        <div class="nav-label" data-label-key="groupLife">LIFE</div>
+        <button class="nav-btn" data-view="period">♡ <span data-label-key="navPeriod">Period</span></button>
+        <button class="nav-btn" data-view="notes">✎ <span data-label-key="navNotes">Notes</span></button>
+        <div class="nav-label" data-label-key="groupPersonalise">PERSONALISE</div>
+        <button class="nav-btn" data-view="themes">✦ <span data-label-key="navThemes">Themes & Stickers</span></button>
+        <button class="nav-btn" data-view="settings">⚙ <span data-label-key="navSettings">Settings</span></button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="sidebar-action" id="privacyToggle">◉ Privacy mode</button>
+        <div class="sync-pill" id="syncPill">● Local mode</div>
+      </div>
+    </aside>
+
+    <header class="mobile-topbar">
+      <button class="icon-btn" id="menuBtn">☰</button>
+      <strong id="brandTitle">我的一天 ♡</strong>
+      <button class="icon-btn" id="mobileAddBtn">＋</button>
+    </header>
+
+    <main class="main">
+      <header class="page-head">
+        <div>
+          <div class="eyebrow" id="pageEyebrow" data-label-key="pageEyebrow">COMMAND CENTRE</div>
+          <h1 id="pageTitle">Home</h1>
+        </div>
+        <div class="head-actions">
+          <button class="ghost-btn" id="todayBtn" data-label-key="todayButton">Today</button>
+          <button class="primary-btn" id="quickAddBtn"><span data-label-key="quickAddButton">＋ Quick add</span></button>
+        </div>
+      </header>
+
+      <section class="view active" id="homeView">
+        <div class="hero">
+          <div>
+            <div class="eyebrow muted-light" id="semesterLabel">TERM</div>
+            <h2 id="greeting">Good morning.</h2>
+            <p id="heroDate"></p>
+          </div>
+          <div class="hero-meta">
+            <div>
+              <span>Next</span>
+              <strong id="nextEventText">Nothing scheduled</strong>
+            </div>
+            <div>
+              <span>Week</span>
+              <strong id="weekText">—</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid" id="dashboardGrid">
+          <article class="widget" data-widget="today">
+            <div class="widget-head"><span data-label-key="widgetToday">Today</span><button class="drag-handle">⋮⋮</button></div>
+            <div id="todayAgenda" class="agenda"></div>
+          </article>
+
+          <article class="widget" data-widget="tasks">
+            <div class="widget-head"><span data-label-key="widgetTasks">Tasks</span><button class="drag-handle">⋮⋮</button></div>
+            <div id="homeTasks" class="mini-list"></div>
+          </article>
+
+          <article class="widget" data-widget="countdowns">
+            <div class="widget-head"><span data-label-key="widgetCountdowns">Countdowns</span><button class="drag-handle">⋮⋮</button></div>
+            <div id="countdowns" class="countdowns"></div>
+          </article>
+
+          <article class="widget" data-widget="semester">
+            <div class="widget-head"><span data-label-key="widgetTerm">Term progress</span><button class="drag-handle">⋮⋮</button></div>
+            <div class="progress-card">
+              <div class="progress-track"><div id="semesterProgress" class="progress-fill"></div></div>
+              <div class="progress-meta"><strong id="semesterPct">0%</strong><span id="semesterWeek">Not configured</span></div>
+            </div>
+          </article>
+
+          <article class="widget" data-widget="note">
+            <div class="widget-head"><span data-label-key="widgetNote">Quick note</span><button class="drag-handle">⋮⋮</button></div>
+            <textarea id="quickNote" class="clean-textarea" placeholder="Write anything..."></textarea>
+          </article>
+
+          <!-- photo widget removed
+          <article class="widget photo-widget" data-widget="photo">
+            <div class="widget-head"><span>Photo / Moodboard</span><button class="drag-handle">⋮⋮</button></div>
+            <div id="photoWidget" class="photo-drop">Add an image in Themes & Stickers</div>
+          </article> -->
+        </div>
+
+        <div id="stickerCanvas" class="sticker-canvas" aria-label="Sticker layer"></div>
+      </section>
+
+      <section class="view" id="calendarView">
+        <div class="toolbar">
+          <div class="segmented">
+            <button data-calview="day">Day</button>
+            <button data-calview="week" class="active">Week</button>
+            <button data-calview="month">Month</button>
+          </div>
+          <div class="toolbar-group">
+            <button class="ghost-btn" id="calPrev">←</button>
+            <button class="ghost-btn" id="calToday">Today</button>
+            <button class="ghost-btn" id="calNext">→</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="calendar-title" id="calendarTitle"></div>
+          <div id="calendarBody"></div>
+        </div>
+      </section>
+
+      <section class="view" id="tasksView">
+        <div class="panel">
+          <div class="section-head">
+            <div><div class="eyebrow" data-label-key="tasksEyebrow">TO DO</div><h2 data-label-key="tasksHeader">Tasks</h2></div>
+            <div class="segmented small">
+              <button data-taskfilter="all" class="active">All</button>
+              <button data-taskfilter="open">Open</button>
+              <button data-taskfilter="done">Done</button>
+            </div>
+          </div>
+          <div id="tasksList" class="list-stack"></div>
+        </div>
+      </section>
+
+      <section class="view" id="timetableView">
+        <div class="panel">
+          <div class="section-head">
+            <div><div class="eyebrow" data-label-key="timetableEyebrow">RECURRING</div><h2 data-label-key="timetableHeader">Class timetable</h2></div>
+            <button class="primary-btn" data-create="class">＋ Add class</button>
+          </div>
+          <div id="timetableGrid" class="timetable"></div>
+        </div>
+      </section>
+
+      <section class="view" id="assignmentsView">
+        <div class="panel">
+          <div class="section-head">
+            <div><div class="eyebrow" data-label-key="assignmentsEyebrow">DEADLINES</div><h2 data-label-key="assignmentsHeader">Assignments</h2></div>
+            <button class="primary-btn" data-create="assignment">＋ Add assignment</button>
+          </div>
+          <div id="assignmentsList" class="cards-grid"></div>
+        </div>
+      </section>
+
+      <section class="view" id="examsView">
+        <div class="panel">
+          <div class="section-head">
+            <div><div class="eyebrow" data-label-key="examsEyebrow">ASSESSMENTS</div><h2 data-label-key="examsHeader">Exams & quizzes</h2></div>
+            <button class="primary-btn" data-create="exam">＋ Add exam</button>
+          </div>
+          <div id="examList" class="cards-grid"></div>
+        </div>
+      </section>
+
+      <section class="view privacy-sensitive" id="periodView">
+        <div class="panel">
+          <div class="section-head">
+            <div><div class="eyebrow" data-label-key="periodEyebrow">PRIVATE HEALTH LOG</div><h2 data-label-key="periodHeader">Period tracker</h2></div>
+            <button class="primary-btn" data-create="period">＋ Log</button>
+          </div>
+          <div class="period-summary">
+            <div><span>Last start</span><strong id="lastPeriodStart">—</strong></div>
+            <div><span>Typical cycle</span><strong id="cycleLengthText">28 days</strong></div>
+            <div><span>Estimated next</span><strong id="nextPeriodText">—</strong></div>
+          </div>
+          <div id="periodLogs" class="list-stack"></div>
+        </div>
+      </section>
+
+      <section class="view" id="notesView">
+        <div class="panel">
+          <div class="section-head"><div><div class="eyebrow" data-label-key="notesEyebrow">SCRATCHPAD</div><h2 data-label-key="notesHeader">Notes</h2></div></div>
+          <textarea id="notesArea" class="notes-area" placeholder="Class notes, ideas, reminders..."></textarea>
+          <div class="save-hint">Saved automatically on this device.</div>
+        </div>
+      </section>
+
+      <section class="view" id="themesView">
+        <div class="two-col">
+          <div class="panel">
+            <div class="section-head"><div><div class="eyebrow" data-label-key="themesEyebrow">APPEARANCE</div><h2 data-label-key="themesHeader">Theme studio</h2></div></div>
+            <div class="theme-form">
+              <label>Theme preset
+                <select id="themePreset">
+                  <option value="clean">Clean Minimal</option>
+                  <option value="soft">Soft & Friendly</option>
+                  <option value="dark">Dark Cinematic</option>
+                  <option value="pixel">Retro Pixel</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </label>
+              <label>Accent colour <input id="accentColor" type="color"></label>
+              <label>Background colour <input id="bgColor" type="color"></label>
+              <label>Card colour <input id="cardColor" type="color"></label>
+              <label>Card roundness <input id="radiusRange" type="range" min="0" max="30" step="1"></label>
+              <label>Card transparency <input id="opacityRange" type="range" min="70" max="100" step="1"></label>
+              <label>Custom background image <input id="wallpaperInput" type="file" accept="image/*"></label>
+              <button class="ghost-btn" id="clearWallpaper">Remove wallpaper</button>
+              <label>Custom app icon <input id="iconInput" type="file" accept="image/*"></label>
+              <button class="ghost-btn" id="clearIcon">Remove custom icon</button>
+
+              <div class="dashboard-colours">
+                <div class="eyebrow">FULL COLOUR CUSTOMISATION</div>
+                <div class="colour-grid">
+                  <label>Page background <input type="color" data-color-key="bg"></label>
+                  <label>Sidebar <input type="color" data-color-key="sidebar"></label>
+                  <label>Main text <input type="color" data-color-key="text"></label>
+                  <label>Muted text <input type="color" data-color-key="muted"></label>
+                  <label>Borders <input type="color" data-color-key="line"></label>
+                  <label>Accent <input type="color" data-color-key="accent"></label>
+                  <label>Primary buttons <input type="color" data-color-key="primary"></label>
+                  <label>Primary button text <input type="color" data-color-key="primaryText"></label>
+                  <label>Sidebar text <input type="color" data-color-key="sidebarText"></label>
+                  <label>Sidebar active <input type="color" data-color-key="sidebarActive"></label>
+                  <label>Mobile bars <input type="color" data-color-key="mobileBar"></label>
+                  <label>Calendar lines <input type="color" data-color-key="calendarLine"></label>
+                  <label>Chat button <input type="color" data-color-key="chatFab"></label>
+                  <label>Hero banner <input type="color" data-color-key="hero"></label>
+                </div>
+              </div>
+              <div class="dashboard-colours">
+                <div class="eyebrow">首页Card colour ✿</div>
+                <div class="colour-grid">
+                  <label>Today <input type="color" data-widget-color="today"></label>
+                  <label>Tasks <input type="color" data-widget-color="tasks"></label>
+                  <label>Countdowns <input type="color" data-widget-color="countdowns"></label>
+                  <label>Term <input type="color" data-widget-color="semester"></label>
+                  <label>小笔记 <input type="color" data-widget-color="note"></label>
+                  <label>Top banner <input type="color" id="heroColor"></label>
+                </div>
+                <button class="ghost-btn" id="resetWidgetColours">恢复默认Card colour</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="section-head"><div><div class="eyebrow" data-label-key="stickersEyebrow">DECORATE</div><h2 data-label-key="stickersHeader">Sticker library</h2></div></div>
+            <div class="upload-box">
+              <input id="stickerInput" type="file" accept="image/*" multiple>
+              <p>Upload PNG, JPG, GIF or WebP stickers. Tap one to place it on Home.</p>
+            </div>
+            <div id="stickerLibrary" class="sticker-library"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="settingsView">
+        <div class="two-col">
+          <div class="panel">
+            <div class="section-head"><div><div class="eyebrow" data-label-key="termEyebrow">TERM SETTINGS</div><h2 data-label-key="termHeader">Term settings</h2></div></div>
+            <div class="form-grid">
+              <label>Term name <input id="semesterName" type="text" placeholder="Semester 1"></label>
+              <label>Start date <input id="semesterStart" type="date"></label>
+              <label>End date <input id="semesterEnd" type="date"></label>
+              <button class="primary-btn" id="saveSemester">Save term</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="section-head">
+              <div>
+                <div class="eyebrow" data-label-key="labelsEyebrow">TEXT CUSTOMISATION</div>
+                <h2 data-label-key="labelsHeader">Label editor</h2>
+              </div>
+            </div>
+            <p class="muted">Rename the app title, sidebar sections, navigation labels, dashboard widgets and page subtitle. Changes update instantly.</p>
+            <div id="labelEditor" class="label-editor"></div>
+            <div class="button-stack">
+              <button class="ghost-btn" id="resetLabels">Reset labels to English</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="section-head"><div><div class="eyebrow" data-label-key="dataEyebrow">DATA</div><h2 data-label-key="dataHeader">Backup & sync</h2></div></div>
+            <p class="muted">This build runs fully on-device. Export a backup to move your data manually between devices. Cloud account sync is scaffolded for the next step.</p>
+            <div class="button-stack">
+              <button class="ghost-btn" id="exportData">Export backup</button>
+              <label class="ghost-btn file-btn">Import backup <input id="importData" type="file" accept=".json" hidden></label>
+              <button class="danger-btn" id="resetData">Reset local data</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="mobile-bottom">
+      <button data-view="home" class="active">⌂<span data-label-key="navHomeMobile">Home</span></button>
+      <button data-view="calendar">▣<span data-label-key="navCalendarMobile">Calendar</span></button>
+      <button id="mobileQuickAdd">＋</button>
+      <button data-view="tasks">✓<span>Tasks</span></button>
+      <button data-view="settings">⚙<span data-label-key="navMoreMobile">More</span></button>
+    </nav>
+
+    <button class="chat-fab" id="chatFab">✦</button>
+    <aside class="chat-panel hidden" id="chatPanel">
+      <div class="chat-head">
+        <div><strong>Planner Assistant</strong><span>Understands your planner</span></div>
+        <button class="icon-btn" id="closeChat">×</button>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-msg bot">Ask “what’s tomorrow?”, “when is my next exam?” or “show tasks due this week”.</div>
+      </div>
+      <form class="chat-input-row" id="chatForm">
+        <input id="chatInput" placeholder="Ask about your planner…" autocomplete="off">
+        <button class="primary-btn">Send</button>
+      </form>
+    </aside>
+
+    <div class="modal-backdrop hidden" id="quickModal">
+      <div class="modal">
+        <div class="modal-head">
+          <div><div class="eyebrow">QUICK ADD</div><h2>What are you adding?</h2></div>
+          <button class="icon-btn modal-close">×</button>
+        </div>
+        <div class="quick-grid">
+          <button data-create="event" data-label-key="quickEvent">Event</button>
+          <button data-create="task" data-label-key="quickTask">Task</button>
+          <button data-create="class" data-label-key="quickClass">Class</button>
+          <button data-create="assignment" data-label-key="quickAssignment">Assignment</button>
+          <button data-create="exam" data-label-key="quickExam">Exam / Quiz</button>
+          <button data-create="period" data-label-key="quickPeriod">Period log</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop hidden" id="editorModal">
+      <div class="modal large-modal">
+        <div class="modal-head">
+          <div><div class="eyebrow" id="editorEyebrow">ADD</div><h2 id="editorTitle">New item</h2></div>
+          <button class="icon-btn editor-close">×</button>
+        </div>
+        <form id="editorForm"></form>
+      </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+# 我的一天 ♡ — Fully Customisable Planner v2.3
+
+A customisable, installable student life planner.
+
+## Included now
+
+- Home command centre
+- Day / week / month calendar
+- Time-based events
+- Recurring weekly classes
+- Tasks with due dates, times and priorities
+- Assignments with progress, status and weightage
+- Exams / quizzes with countdowns
+- Period logging with estimated next cycle
+- Notes
+- Semester progress
+- Privacy mode
+- Custom themes
+- Custom colours and card styles
+- Wallpaper uploads
+- Sticker uploads and draggable stickers
+- Drag-reorder dashboard widgets
+- Mini planner assistant (local/rule-based)
+- PWA manifest + service worker
+- Mobile / tablet / desktop responsive layouts
+- Export/import JSON backup
+
+## Run it
+
+Open `index.html`, or preferably run a local web server:
+
+```bash
+python3 -m http.server 8000
+```
+
+Then visit:
+
+`http://localhost:8000`
+
+## Install on iPhone / iPad
+
+Once hosted with HTTPS:
+1. Open the site in Safari.
+2. Tap Share.
+3. Tap **Add to Home Screen**.
+
+## Install on Mac
+
+Once hosted:
+- Safari can add it to Dock on supported macOS versions.
+- Chrome/Edge can install the PWA from the address bar/app menu.
+
+## Important: cross-device sync
+
+This build is fully usable but currently stores planner data on each device using browser local storage.
+
+The code is deliberately separated so the next step can replace the local `load()` / `save()` layer with:
+- Supabase (recommended)
+- Firebase
+- another free cloud database
+
+That next step enables:
+- one login
+- phone/iPad/Mac syncing
+- cloud image/sticker storage
+- shared data backup
+- real multi-device assistant context
+
+## AI assistant
+
+The included mini assistant is free and local. It can answer basic questions from saved planner data.
+
+A true natural-language AI assistant needs an external model/API or server-side AI service. That should be connected only after authentication and cloud data are added so API keys are not exposed in the browser.
+
+
+## TimeTree sync limitation
+
+As of October 2026, TimeTree's official support documentation says TimeTree-created events cannot be exported and cannot automatically sync outward to another calendar.
+
+Practical options:
+- If your TimeTree is displaying Google Calendar / Apple Calendar events, connect/import that original external calendar instead.
+- TimeTree-native events must currently be copied manually.
+- This project can later add Google Calendar syncing and generic `.ics` import, but TimeTree itself does not provide an export path for its native events.
+
+
+## Custom labels
+Settings now includes a Label Editor. You can rename the app title, subtitle, sidebar section headers, navigation labels, dashboard widget names, and page titles. Changes are stored with the rest of your planner data.
+
+
+## v2.3 customisation
+- Default branding is now `我的一天 ♡` with subtitle `我的小小生活簿 ✿`.
+- Upload any image as the app/sidebar icon.
+- Full colour controls for page, sidebar, text, muted text, borders, accent, primary buttons, mobile bars, calendar grid lines, chat button, hero banner, and every dashboard card.
+- Label Editor now covers nearly every major visible header, subheader, navigation item, page title, widget title, and quick-add button.
+- All customisations persist in local storage and are included in backups.
