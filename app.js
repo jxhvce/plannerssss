@@ -290,13 +290,39 @@ function renderExams(){
   $("#examList").innerHTML=items.length?items.map(i=>{const days=i.date?Math.ceil((dt(i.date,i.time||"23:59")-new Date())/86400000):null;return `<article class="info-card"><div class="eyebrow">${escapeHtml(i.module||"EXAM")}</div><h3>${escapeHtml(i.title)}</h3><p>${i.date?fmt(i.date,{weekday:"long",month:"short",day:"numeric"}):"No date"} ${i.time||""}</p><p>${escapeHtml(i.location||"")}</p><div class="big-number">${days===null?"—":Math.max(0,days)+"d"}</div><button class="ghost-btn" data-edit="${i.id}">Edit</button></article>`}).join(""):`<div class="muted">No exams or quizzes yet.</div>`;
 }
 function renderTimetable(){
-  const times=["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"];
-  let html=`<div class="tt-cell tt-head">Time</div>${["Mon","Tue","Wed","Thu","Fri"].map(x=>`<div class="tt-cell tt-head">${x}</div>`).join("")}`;
+  const mon=mondayOf(new Date());
+  const days=[...Array(7)].map((_,i)=>{
+    const d=new Date(mon);
+    d.setDate(mon.getDate()+i);
+    return d;
+  });
+
+  // Build time rows dynamically from the classes that actually occur this week.
+  const weekClasses=[];
+  days.forEach(d=>{
+    const key=dateKeyLocal(d);
+    relevantItemsForDate(key)
+      .filter(i=>i.type==="class")
+      .forEach(i=>weekClasses.push({...i,_date:key}));
+  });
+
+  let times=[...new Set(weekClasses.map(i=>i.time).filter(Boolean))].sort();
+  if(!times.length) times=["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00"];
+
+  let html=`<div class="tt-cell tt-head">Time</div>`+
+    days.map(d=>`<div class="tt-cell tt-head">${d.toLocaleDateString(undefined,{weekday:"short"})}<br>${d.getDate()} ${d.toLocaleDateString(undefined,{month:"short"})}</div>`).join("");
+
   for(const time of times){
     html+=`<div class="tt-cell">${time}</div>`;
-    for(let day=1;day<=5;day++){
-      const items=data.items.filter(i=>i.type==="class"&&Number(i.weekday)===day&&i.time===time);
-      html+=`<div class="tt-cell">${items.map(i=>`<div class="tt-class" style="--item:${i.color||COLORS.class}" data-edit="${i.id}"><strong>${escapeHtml(i.title)}</strong><br>${escapeHtml(i.location||"")}</div>`).join("")}</div>`;
+    for(const d of days){
+      const key=dateKeyLocal(d);
+      const items=relevantItemsForDate(key).filter(i=>i.type==="class"&&i.time===time);
+      html+=`<div class="tt-cell">${items.map(i=>`
+        <div class="tt-class" style="--item:${i.color||COLORS.class}" data-edit="${i.id}">
+          <strong>${escapeHtml(i.title)}</strong>
+          ${i.module?`<br>${escapeHtml(i.module)}`:""}
+          ${i.location?`<br>${escapeHtml(i.location)}`:""}
+        </div>`).join("")}</div>`;
     }
   }
   $("#timetableGrid").innerHTML=html;
@@ -447,7 +473,16 @@ function openEditor(type,item=null){
     html+=field("date","Due date","date",v.date||"")+field("time","Due time","time",v.time||"")+selectField("priority","Priority",["low","medium","high"],v.priority||"medium")+selectField("category","Category",["School","Personal","CCA","Health","Other"],v.category||"School")+`<label class="full">Notes<textarea name="notes" rows="4">${escapeHtml(v.notes||"")}</textarea></label>`;
   }
   if(type==="class"){
-    html+=field("module","Module / code","text",v.module||"")+selectField("weekday","Weekday",["1","2","3","4","5","6","0"],String(v.weekday??1))+field("time","Start time","time",v.time||"09:00","required")+field("endTime","End time","time",v.endTime||"11:00")+field("location","Room / location","text",v.location||"")+field("lecturer","Lecturer","text",v.lecturer||"")+`<label>Colour<input name="color" type="color" value="${v.color||COLORS.class}"></label><input type="hidden" name="repeat" value="weekly">`;
+    const scheduleMode=v.repeat==="weekly"?"Weekly recurring":"Specific date";
+    html+=field("module","Module / code","text",v.module||"")
+      +selectField("scheduleMode","Schedule type",["Specific date","Weekly recurring"],scheduleMode)
+      +field("date","Class date","date",v.date||todayKey())
+      +selectField("weekday","Recurring weekday",["1","2","3","4","5","6","0"],String(v.weekday??1))
+      +field("time","Start time","time",v.time||"09:00","required")
+      +field("endTime","End time","time",v.endTime||"11:00")
+      +field("location","Room / location","text",v.location||"")
+      +field("lecturer","Lecturer","text",v.lecturer||"")
+      +`<label>Colour<input name="color" type="color" value="${v.color||COLORS.class}"></label>`;
   }
   if(type==="assignment"){
     html+=field("module","Module / code","text",v.module||"")+field("date","Due date","date",v.date||todayKey(),"required")+field("time","Due time","time",v.time||"23:59")+field("weight","Weightage","text",v.weight||"")+selectField("status","Status",["Not Started","In Progress","Reviewing","Submitted"],v.status||"Not Started")+field("progress","Progress %","number",String(v.progress??0),'min="0" max="100"')+`<label class="full">Notes<textarea name="notes" rows="4">${escapeHtml(v.notes||"")}</textarea></label>`;
@@ -462,7 +497,17 @@ function openEditor(type,item=null){
   $("#editorForm").innerHTML=html;
   if(item)$("#deleteItem").onclick=()=>{if(type==="period")data.periodLogs=data.periodLogs.filter(x=>x.id!==item.id);else data.items=data.items.filter(x=>x.id!==item.id);save();closeModals();toast("Deleted")};
 }
-$("#editorForm").addEventListener("submit",e=>{e.preventDefault();const fd=Object.fromEntries(new FormData(e.currentTarget).entries());const type=fd.type,id=fd.id||uid();delete fd.type;delete fd.id;if(type==="period"){const obj={id,...fd};const idx=data.periodLogs.findIndex(x=>x.id===id);if(idx>=0)data.periodLogs[idx]=obj;else data.periodLogs.push(obj)}else{const existing=data.items.find(x=>x.id===id);const obj={id,type,done:existing?.done||false,...fd};if(type==="class")obj.weekday=Number(obj.weekday);if(type==="assignment")obj.progress=Number(obj.progress||0);const idx=data.items.findIndex(x=>x.id===id);if(idx>=0)data.items[idx]=obj;else data.items.push(obj)}save();closeModals();toast("Saved")});
+$("#editorForm").addEventListener("submit",e=>{e.preventDefault();const fd=Object.fromEntries(new FormData(e.currentTarget).entries());const type=fd.type,id=fd.id||uid();delete fd.type;delete fd.id;if(type==="period"){const obj={id,...fd};const idx=data.periodLogs.findIndex(x=>x.id===id);if(idx>=0)data.periodLogs[idx]=obj;else data.periodLogs.push(obj)}else{const existing=data.items.find(x=>x.id===id);const obj={id,type,done:existing?.done||false,...fd};if(type==="class"){
+  obj.weekday=Number(obj.weekday);
+  if(obj.scheduleMode==="Weekly recurring"){
+    obj.repeat="weekly";
+    obj.date="";
+  }else{
+    obj.repeat="";
+  }
+  delete obj.scheduleMode;
+}
+if(type==="assignment")obj.progress=Number(obj.progress||0);const idx=data.items.findIndex(x=>x.id===id);if(idx>=0)data.items[idx]=obj;else data.items.push(obj)}save();closeModals();toast("Saved")});
 
 function plannerAnswer(q){
   const s=q.toLowerCase().trim(), tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);const tkey=dateKeyLocal(tomorrow);

@@ -147,3 +147,10 @@ If Supabase says a policy already exists, do not recreate that same policy.
 - App files now use network-first loading so GitHub updates are not stuck behind stale cache.
 - Sync errors now display the exact Supabase error in a toast.
 - Settings includes **Show sync diagnostics** to test session and table access.
+
+
+## v2.6 class scheduling
+- Classes can now be scheduled by **specific date**.
+- Weekly recurring classes are still supported.
+- The timetable shows the actual Monday–Sunday dates for the current week.
+- Date-specific and recurring classes appear together in the timetable and calendar.
