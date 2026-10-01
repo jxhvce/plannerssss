@@ -139,3 +139,11 @@ using (auth.uid() = user_id);
 ```
 
 If Supabase says a policy already exists, do not recreate that same policy.
+
+
+## v2.5 sync troubleshooting
+- Service worker cache bumped to `life-planner-v2.5`.
+- Old caches are deleted on activation.
+- App files now use network-first loading so GitHub updates are not stuck behind stale cache.
+- Sync errors now display the exact Supabase error in a toast.
+- Settings includes **Show sync diagnostics** to test session and table access.

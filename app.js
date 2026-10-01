@@ -132,20 +132,23 @@ async function saveCloudData(){
   },{onConflict:"user_id"});
   if(error){
     $("#syncPill").textContent="● Sync error";
-    console.error(error);
-    return;
+    console.error("Supabase save error:", error);
+    toast(`Sync error: ${error.message || "Unknown error"}`);
+    return false;
   }
   lastCloudUpdatedAt=new Date().toISOString();
   $("#syncPill").textContent="● Synced";
+  return true;
 }
 async function loadCloudData(){
   if(!currentUser)return;
   $("#syncPill").textContent="● Syncing…";
   const {data:row,error}=await supabaseClient.from("planner_data").select("data,updated_at").eq("user_id",currentUser.id).maybeSingle();
   if(error){
-    console.error(error);
+    console.error("Supabase load error:", error);
     $("#syncPill").textContent="● Sync error";
-    return;
+    toast(`Sync error: ${error.message || "Unknown error"}`);
+    return false;
   }
   if(row?.data){
     data={...structuredClone(seed),...row.data};
@@ -157,6 +160,7 @@ async function loadCloudData(){
   }
   cloudReady=true;
   $("#syncPill").textContent="● Synced";
+  return true;
 }
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const fmt=(d,o={})=>new Date(d+"T12:00:00").toLocaleDateString(undefined,o);
@@ -576,15 +580,27 @@ $("#authForm").onsubmit=async e=>{
     $("#authSubmit").disabled=false;
   }
 };
+
+if($("#syncDiagBtn")) $("#syncDiagBtn").onclick=async()=>{
+  const {data:{session},error:sessionError}=await supabaseClient.auth.getSession();
+  let msg="";
+  if(sessionError) msg+=`Session error: ${sessionError.message}\n`;
+  msg+=`Signed in: ${!!session?.user}\n`;
+  if(session?.user) msg+=`User ID: ${session.user.id}\n`;
+  const test=await supabaseClient.from("planner_data").select("user_id,updated_at").limit(1);
+  if(test.error) msg+=`Table test error: ${test.error.message}\nCode: ${test.error.code||"n/a"}\nDetails: ${test.error.details||"n/a"}\nHint: ${test.error.hint||"n/a"}`;
+  else msg+=`Table test: OK`;
+  alert(msg);
+};
+
 if($("#signOutBtn")) $("#signOutBtn").onclick=async()=>{
   await supabaseClient.auth.signOut();
   toast("Signed out");
 };
 if($("#syncNowBtn")) $("#syncNowBtn").onclick=async()=>{
   if(!currentUser){showAuth();return}
-  await loadCloudData();
-  await saveCloudData();
-  toast("Synced");
+  const ok=await loadCloudData();
+  if(ok!==false) toast("Synced");
 };
 
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
