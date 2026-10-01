@@ -31,17 +31,14 @@
         <button class="nav-btn" data-view="timetable">▤ <span data-label-key="navTimetable">Timetable</span></button>
         <button class="nav-btn" data-view="assignments">◫ <span data-label-key="navAssignments">Assignments</span></button>
         <button class="nav-btn" data-view="exams">◇ <span data-label-key="navExams">Exams</span></button>
-        <div class="nav-label" data-label-key="groupLife">LIFE</div>
-        <button class="nav-btn" data-view="period">♡ <span data-label-key="navPeriod">Period</span></button>
-        <button class="nav-btn" data-view="notes">✎ <span data-label-key="navNotes">Notes</span></button>
+<button class="nav-btn" data-view="notes">✎ <span data-label-key="navNotes">Subject Notes</span></button>
         <div class="nav-label" data-label-key="groupPersonalise">PERSONALISE</div>
         <button class="nav-btn" data-view="themes">✦ <span data-label-key="navThemes">Themes & Stickers</span></button>
         <button class="nav-btn" data-view="settings">⚙ <span data-label-key="navSettings">Settings</span></button>
       </nav>
 
       <div class="sidebar-footer">
-        <button class="sidebar-action" id="privacyToggle">◉ Privacy mode</button>
-        <div class="sync-pill" id="syncPill">● Connecting…</div>
+<div class="sync-pill" id="syncPill">● Connecting…</div>
       </div>
     </aside>
 
@@ -185,28 +182,27 @@
         </div>
       </section>
 
-      <section class="view privacy-sensitive" id="periodView">
+      <section class="view" id="notesView">
         <div class="panel">
           <div class="section-head">
-            <div><div class="eyebrow" data-label-key="periodEyebrow">PRIVATE HEALTH LOG</div><h2 data-label-key="periodHeader">Period tracker</h2></div>
-            <button class="primary-btn" data-create="period">＋ Log</button>
+            <div>
+              <div class="eyebrow" data-label-key="notesEyebrow">STUDY NOTES</div>
+              <h2 data-label-key="notesHeader">Subject Notes</h2>
+            </div>
+            <button class="primary-btn" id="addStudyNoteBtn">＋ Add note</button>
           </div>
-          <div class="period-summary">
-            <div><span>Last start</span><strong id="lastPeriodStart">—</strong></div>
-            <div><span>Typical cycle</span><strong id="cycleLengthText">28 days</strong></div>
-            <div><span>Estimated next</span><strong id="nextPeriodText">—</strong></div>
+          <div class="notes-layout">
+            <aside class="notes-sidebar">
+              <input id="noteSearch" class="notes-search" type="search" placeholder="Search subject, topic or notes">
+              <div id="subjectFilterList" class="subject-filter-list"></div>
+            </aside>
+            <div class="notes-content">
+              <div id="studyNotesList" class="study-notes-list"></div>
+            </div>
           </div>
-          <div id="periodLogs" class="list-stack"></div>
         </div>
       </section>
 
-      <section class="view" id="notesView">
-        <div class="panel">
-          <div class="section-head"><div><div class="eyebrow" data-label-key="notesEyebrow">SCRATCHPAD</div><h2 data-label-key="notesHeader">Notes</h2></div></div>
-          <textarea id="notesArea" class="notes-area" placeholder="Class notes, ideas, reminders..."></textarea>
-          <div class="save-hint">Saved automatically on this device.</div>
-        </div>
-      </section>
 
       <section class="view" id="themesView">
         <div class="two-col">
@@ -304,7 +300,7 @@
           </div>
           <div class="panel">
             <div class="section-head"><div><div class="eyebrow" data-label-key="dataEyebrow">DATA</div><h2 data-label-key="dataHeader">Backup & sync</h2></div></div>
-            <p class="muted">This build runs fully on-device. Export a backup to move your data manually between devices. Cloud account sync is scaffolded for the next step.</p>
+            <p class="muted">Your school planner syncs through your account. You can also export a backup at any time.</p>
             <div class="button-stack">
               <button class="ghost-btn" id="exportData">Export backup</button>
               <label class="ghost-btn file-btn">Import backup <input id="importData" type="file" accept=".json" hidden></label>
@@ -348,13 +344,11 @@
           <button class="icon-btn modal-close">×</button>
         </div>
         <div class="quick-grid">
-          <button data-create="event" data-label-key="quickEvent">Event</button>
-          <button data-create="task" data-label-key="quickTask">Task</button>
+                    <button data-create="task" data-label-key="quickTask">Task</button>
           <button data-create="class" data-label-key="quickClass">Class</button>
           <button data-create="assignment" data-label-key="quickAssignment">Assignment</button>
           <button data-create="exam" data-label-key="quickExam">Exam / Quiz</button>
-          <button data-create="period" data-label-key="quickPeriod">Period log</button>
-        </div>
+                  </div>
       </div>
     </div>
 

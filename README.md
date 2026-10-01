@@ -154,3 +154,18 @@ If Supabase says a policy already exists, do not recreate that same policy.
 - Weekly recurring classes are still supported.
 - The timetable shows the actual Monday–Sunday dates for the current week.
 - Date-specific and recurring classes appear together in the timetable and calendar.
+
+
+## v2.7 school-only planner
+- Removed Period tracking.
+- Removed personal Event / personal calendar creation.
+- Existing personal-event data is hidden from the school calendar.
+- Planner is now focused on classes, assignments, exams, school tasks, timetable and study notes.
+- Added structured Subject Notes:
+  - Subject
+  - Topic
+  - Notes
+  - Search
+  - Filter by subject
+  - Edit/delete notes
+- Subject notes sync through the same Supabase planner data.

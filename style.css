@@ -137,3 +137,21 @@ body,button,input,select,textarea{font-family:"Times New Roman",Times,serif!impo
 .auth-form input{width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.8)}
 .auth-message{min-height:18px;font-size:12px;margin-top:10px;color:#b91c1c}
 .auth-small{font-size:11px!important;line-height:1.45}
+
+.notes-layout{display:grid;grid-template-columns:220px 1fr;gap:16px}
+.notes-sidebar{border-right:1px solid var(--line);padding-right:14px}
+.notes-search{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.7);margin-bottom:10px}
+.subject-filter-list{display:grid;gap:7px}
+.subject-filter{border:1px solid var(--line);background:rgba(255,255,255,.5);padding:9px 10px;border-radius:10px;text-align:left;font-weight:700}
+.subject-filter.active{background:var(--accent);color:white;border-color:var(--accent)}
+.study-notes-list{display:grid;gap:12px}
+.study-note-card{border:1px solid var(--line);border-radius:14px;padding:16px;background:rgba(255,255,255,.45)}
+.study-note-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.study-note-card h3{margin:4px 0 0;font-size:18px}
+.study-note-body{margin-top:12px;font-size:14px;line-height:1.6;white-space:normal}
+@media(max-width:760px){
+  .notes-layout{grid-template-columns:1fr}
+  .notes-sidebar{border-right:0;border-bottom:1px solid var(--line);padding-right:0;padding-bottom:12px}
+  .subject-filter-list{display:flex;overflow:auto}
+  .subject-filter{white-space:nowrap}
+}

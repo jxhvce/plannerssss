@@ -14,6 +14,7 @@ const seed={
   items:[],
   notes:"",
   quickNote:"",
+  studyNotes:[],
   periodLogs:[],
   stickers:[],
   stickerInstances:[],
@@ -25,28 +26,28 @@ const seed={
     brandSubtitle:"我的小小生活簿 ✿",
     pageEyebrow:"COMMAND CENTRE",
     groupSchool:"SCHOOL",
-    groupLife:"LIFE",
+    
     groupPersonalise:"PERSONALISE",
     navHome:"Home",navCalendar:"Calendar",navTasks:"Tasks",navTimetable:"Timetable",
-    navAssignments:"Assignments",navExams:"Exams",navPeriod:"Period",navNotes:"Notes",
+    navAssignments:"Assignments",navExams:"Exams",navNotes:"Subject Notes",
     navThemes:"Themes & Stickers",navSettings:"Settings",
     navHomeMobile:"Home",navCalendarMobile:"Calendar",navTasksMobile:"Tasks",navMoreMobile:"More",
     widgetToday:"Today",widgetTasks:"Tasks",widgetCountdowns:"Countdowns",widgetTerm:"Term progress",widgetNote:"Quick note",
     pageHome:"Home",pageCalendar:"Calendar",pageTasks:"Tasks",pageTimetable:"Timetable",pageAssignments:"Assignments",
-    pageExams:"Exams",pagePeriod:"Period",pageNotes:"Notes",pageThemes:"Themes & Stickers",pageSettings:"Settings",
+    pageExams:"Exams",pageNotes:"Subject Notes",pageThemes:"Themes & Stickers",pageSettings:"Settings",
     labelsHeader:"Label editor",labelsEyebrow:"TEXT CUSTOMISATION",
     tasksHeader:"Tasks",tasksEyebrow:"TO DO",
     timetableHeader:"Class timetable",timetableEyebrow:"RECURRING",
     assignmentsHeader:"Assignments",assignmentsEyebrow:"DEADLINES",
     examsHeader:"Exams & quizzes",examsEyebrow:"ASSESSMENTS",
-    periodHeader:"Period tracker",periodEyebrow:"PRIVATE HEALTH LOG",
-    notesHeader:"Notes",notesEyebrow:"SCRATCHPAD",
+    
+    notesHeader:"Subject Notes",notesEyebrow:"STUDY NOTES",
     themesHeader:"Theme studio",themesEyebrow:"APPEARANCE",
     stickersHeader:"Sticker library",stickersEyebrow:"DECORATE",
     termHeader:"Term settings",termEyebrow:"TERM SETTINGS",
     dataHeader:"Backup & sync",dataEyebrow:"DATA",
     todayButton:"Today",quickAddButton:"＋ Quick add",
-    quickEvent:"Event",quickTask:"Task",quickClass:"Class",quickAssignment:"Assignment",quickExam:"Exam / Quiz",quickPeriod:"Period log",
+    quickTask:"Task",quickClass:"Class",quickAssignment:"Assignment",quickExam:"Exam / Quiz",
   },
   dashboardOrder:["today","tasks","countdowns","semester","note"]
 };
@@ -65,7 +66,7 @@ function applyLabels(){
   if(currentView){
     const pageKey={
       home:"pageHome",calendar:"pageCalendar",tasks:"pageTasks",timetable:"pageTimetable",
-      assignments:"pageAssignments",exams:"pageExams",period:"pagePeriod",notes:"pageNotes",
+      assignments:"pageAssignments",exams:"pageExams",notes:"pageNotes",
       themes:"pageThemes",settings:"pageSettings"
     }[currentView];
     if(pageKey) $("#pageTitle").textContent=label(pageKey,currentView);
@@ -76,29 +77,28 @@ function renderLabelEditor(){
   if(!editor)return;
   const fields=[
     ["brandTitle","App title"],["brandSubtitle","App subtitle"],["pageEyebrow","Home eyebrow"],
-    ["groupSchool","Sidebar group: School"],["groupLife","Sidebar group: Life"],["groupPersonalise","Sidebar group: Personalise"],
+    ["groupSchool","Sidebar group: School"],["groupPersonalise","Sidebar group: Personalise"],
     ["navHome","Navigation: Home"],["navCalendar","Navigation: Calendar"],["navTasks","Navigation: Tasks"],
     ["navTimetable","Navigation: Timetable"],["navAssignments","Navigation: Assignments"],["navExams","Navigation: Exams"],
-    ["navPeriod","Navigation: Period"],["navNotes","Navigation: Notes"],["navThemes","Navigation: Themes & Stickers"],["navSettings","Navigation: Settings"],
+    ["navNotes","Navigation: Subject Notes"],["navThemes","Navigation: Themes & Stickers"],["navSettings","Navigation: Settings"],
     ["widgetToday","Dashboard widget: Today"],["widgetTasks","Dashboard widget: Tasks"],["widgetCountdowns","Dashboard widget: Countdowns"],
     ["widgetTerm","Dashboard widget: Term progress"],["widgetNote","Dashboard widget: Quick note"],
     ["pageHome","Page title: Home"],["pageCalendar","Page title: Calendar"],["pageTasks","Page title: Tasks"],
     ["pageTimetable","Page title: Timetable"],["pageAssignments","Page title: Assignments"],["pageExams","Page title: Exams"],
-    ["pagePeriod","Page title: Period"],["pageNotes","Page title: Notes"],["pageThemes","Page title: Themes & Stickers"],["pageSettings","Page title: Settings"],
+    ["pageNotes","Page title: Subject Notes"],["pageThemes","Page title: Themes & Stickers"],["pageSettings","Page title: Settings"],
     ["tasksEyebrow","Tasks eyebrow"],["tasksHeader","Tasks header"],
     ["timetableEyebrow","Timetable eyebrow"],["timetableHeader","Timetable header"],
     ["assignmentsEyebrow","Assignments eyebrow"],["assignmentsHeader","Assignments header"],
     ["examsEyebrow","Exams eyebrow"],["examsHeader","Exams header"],
-    ["periodEyebrow","Period eyebrow"],["periodHeader","Period header"],
-    ["notesEyebrow","Notes eyebrow"],["notesHeader","Notes header"],
+        ["notesEyebrow","Subject Notes eyebrow"],["notesHeader","Subject Notes header"],
     ["themesEyebrow","Theme eyebrow"],["themesHeader","Theme header"],
     ["stickersEyebrow","Sticker eyebrow"],["stickersHeader","Sticker header"],
     ["termEyebrow","Term settings eyebrow"],["termHeader","Term settings header"],
     ["dataEyebrow","Data eyebrow"],["dataHeader","Data header"],
     ["labelsEyebrow","Label editor eyebrow"],["labelsHeader","Label editor header"],
     ["todayButton","Today button"],["quickAddButton","Quick add button"],
-    ["quickEvent","Quick add: Event"],["quickTask","Quick add: Task"],["quickClass","Quick add: Class"],
-    ["quickAssignment","Quick add: Assignment"],["quickExam","Quick add: Exam / Quiz"],["quickPeriod","Quick add: Period log"]
+    ["quickTask","Quick add: Task"],["quickClass","Quick add: Class"],
+    ["quickAssignment","Quick add: Assignment"],["quickExam","Quick add: Exam / Quiz"],
   ];
   editor.innerHTML=fields.map(([k,n])=>`<label>${n}<input type="text" data-label-input="${k}" value="${escapeHtml(label(k,""))}"></label>`).join("");
   $$("[data-label-input]").forEach(inp=>inp.addEventListener("input",e=>{
@@ -234,13 +234,14 @@ function applyTheme(){
 function relevantItemsForDate(date){
   const weekday=new Date(date+"T12:00:00").getDay();
   return data.items.filter(i=>{
+    if(i.type==="event"||i.type==="period") return false;
     if(i.type==="class"&&i.repeat==="weekly") return Number(i.weekday)===weekday;
     return i.date===date;
   }).sort((a,b)=>(a.time||"99:99").localeCompare(b.time||"99:99"));
 }
 function getUpcoming(){
   const now=new Date();
-  return data.items.filter(i=>i.date&&dt(i.date,i.time||"23:59")>=now).sort((a,b)=>dt(a.date,a.time)-dt(b.date,b.time));
+  return data.items.filter(i=>i.type!=="event"&&i.type!=="period"&&i.date&&dt(i.date,i.time||"23:59")>=now).sort((a,b)=>dt(a.date,a.time)-dt(b.date,b.time));
 }
 function semesterInfo(){
   const s=data.semester;
@@ -259,13 +260,13 @@ function renderHome(){
   $("#nextEventText").textContent=up?`${up.title}${up.time?" · "+up.time:""}`:"Nothing scheduled";
   const si=semesterInfo(); $("#weekText").textContent=si.week; $("#semesterPct").textContent=`${si.pct}%`;$("#semesterWeek").textContent=si.week;$("#semesterProgress").style.width=`${si.pct}%`;
 
-  const agenda=relevantItemsForDate(todayKey()).filter(i=>["class","event","exam","assignment"].includes(i.type));
+  const agenda=relevantItemsForDate(todayKey()).filter(i=>["class","exam","assignment"].includes(i.type));
   $("#todayAgenda").innerHTML=agenda.length?agenda.map(i=>`<div class="agenda-row"><div class="time-chip">${i.time||"All day"}</div><div class="row-main"><strong>${escapeHtml(i.title)}</strong><span>${escapeHtml(i.category||i.type)}</span></div><span class="dot" style="--item:${i.color||COLORS[i.type]||COLORS.personal}"></span></div>`).join(""):`<div class="muted">Nothing scheduled today.</div>`;
 
   const tasks=data.items.filter(i=>i.type==="task"&&!i.done).sort((a,b)=>(a.date||"9999").localeCompare(b.date||"9999")).slice(0,5);
   $("#homeTasks").innerHTML=tasks.length?tasks.map(i=>`<div class="mini-row"><input class="task-check" type="checkbox" data-toggle-task="${i.id}"><div class="row-main"><strong>${escapeHtml(i.title)}</strong><span>${i.date?fmt(i.date,{month:"short",day:"numeric"}):"No due date"}</span></div><span class="badge ${i.priority||"medium"}">${i.priority||"medium"}</span></div>`).join(""):`<div class="muted">No open tasks.</div>`;
 
-  const counts=getUpcoming().filter(i=>["exam","assignment","event"].includes(i.type)).slice(0,3);
+  const counts=getUpcoming().filter(i=>["exam","assignment"].includes(i.type)).slice(0,3);
   $("#countdowns").innerHTML=counts.length?counts.map(i=>{const d=Math.ceil((dt(i.date,i.time||"23:59")-new Date())/86400000);return `<div class="countdown"><strong>${Math.max(0,d)}d</strong><span>${escapeHtml(i.title)}</span></div>`}).join(""):`<div class="muted">Add an exam or deadline.</div>`;
   $("#quickNote").value=data.quickNote||"";
   renderStickerCanvas();
@@ -327,14 +328,7 @@ function renderTimetable(){
   }
   $("#timetableGrid").innerHTML=html;
 }
-function renderPeriod(){
-  const logs=[...data.periodLogs].sort((a,b)=>b.start.localeCompare(a.start));
-  const last=logs[0];
-  $("#lastPeriodStart").textContent=last?fmt(last.start,{month:"short",day:"numeric",year:"numeric"}):"—";
-  $("#cycleLengthText").textContent=`${data.settings.cycleLength||28} days`;
-  if(last){const d=new Date(last.start+"T12:00:00");d.setDate(d.getDate()+(data.settings.cycleLength||28));$("#nextPeriodText").textContent=d.toLocaleDateString(undefined,{month:"short",day:"numeric"})}else $("#nextPeriodText").textContent="—";
-  $("#periodLogs").innerHTML=logs.length?logs.map(l=>`<div class="list-row"><div class="row-main"><strong>${fmt(l.start,{month:"long",day:"numeric"})}${l.end?" – "+fmt(l.end,{month:"short",day:"numeric"}):""}</strong><span>${escapeHtml(l.flow||"")} ${l.notes?"· "+escapeHtml(l.notes):""}</span></div></div>`).join(""):`<div class="muted">No period logs yet.</div>`;
-}
+
 function mondayOf(d){const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(12,0,0,0);return x}
 function dateKeyLocal(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
 function renderCalendar(){
@@ -378,11 +372,76 @@ function makeStickerDraggable(el,obj){
 window.addEventListener("mousemove",e=>moveSticker(e));window.addEventListener("touchmove",e=>moveSticker(e),{passive:false});window.addEventListener("mouseup",endSticker);window.addEventListener("touchend",endSticker);
 function moveSticker(e){if(!dragSticker)return;const p=e.touches?e.touches[0]:e;const dx=p.clientX-dragSticker.sx,dy=p.clientY-dragSticker.sy;dragSticker.obj.x=Math.max(0,dragSticker.ox+dx);dragSticker.obj.y=Math.max(0,dragSticker.oy+dy);dragSticker.el.style.left=dragSticker.obj.x+"px";dragSticker.el.style.top=dragSticker.obj.y+"px";if(e.cancelable)e.preventDefault()}
 function endSticker(){if(dragSticker){localStorage.setItem(KEY,JSON.stringify(data));dragSticker=null}}
+
+let activeSubjectFilter="All";
+
+function uniqueSubjects(){
+  return [...new Set((data.studyNotes||[]).map(n=>n.subject).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+}
+
+function renderSubjectFilters(){
+  const box=$("#subjectFilterList");
+  if(!box)return;
+  const subjects=["All",...uniqueSubjects()];
+  box.innerHTML=subjects.map(s=>`<button class="subject-filter ${activeSubjectFilter===s?"active":""}" data-subject-filter="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("");
+}
+
+function renderStudyNotes(){
+  const list=$("#studyNotesList");
+  if(!list)return;
+  const q=($("#noteSearch")?.value||"").trim().toLowerCase();
+  let notes=[...(data.studyNotes||[])].sort((a,b)=>(a.subject||"").localeCompare(b.subject||"")||(a.topic||"").localeCompare(b.topic||""));
+  if(activeSubjectFilter!=="All") notes=notes.filter(n=>n.subject===activeSubjectFilter);
+  if(q) notes=notes.filter(n=>`${n.subject} ${n.topic} ${n.notes}`.toLowerCase().includes(q));
+  list.innerHTML=notes.length?notes.map(n=>`
+    <article class="study-note-card">
+      <div class="study-note-top">
+        <div>
+          <div class="eyebrow">${escapeHtml(n.subject||"SUBJECT")}</div>
+          <h3>${escapeHtml(n.topic||"Untitled topic")}</h3>
+        </div>
+        <button class="ghost-btn" data-edit-study-note="${n.id}">Edit</button>
+      </div>
+      <div class="study-note-body">${escapeHtml(n.notes||"").replace(/\n/g,"<br>")}</div>
+    </article>
+  `).join(""):`<div class="muted">No notes found. Add your first subject note.</div>`;
+  renderSubjectFilters();
+}
+
+function openStudyNoteEditor(note=null){
+  closeModals();
+  $("#editorModal").classList.remove("hidden");
+  $("#editorTitle").textContent=note?"Edit study note":"New study note";
+  $("#editorEyebrow").textContent=note?"EDIT":"ADD";
+  const v=note||{};
+  $("#editorForm").innerHTML=`
+    <input type="hidden" name="studyNoteId" value="${v.id||""}">
+    <div class="editor-grid">
+      <label>Subject<input name="studySubject" type="text" value="${escapeHtml(v.subject||"")}" placeholder="e.g. Chemistry" required></label>
+      <label>Topic<input name="studyTopic" type="text" value="${escapeHtml(v.topic||"")}" placeholder="e.g. Stoichiometry" required></label>
+      <label class="full">Notes<textarea name="studyNotesText" rows="14" placeholder="Write your notes here..." required>${escapeHtml(v.notes||"")}</textarea></label>
+    </div>
+    <div class="modal-actions">
+      ${note?`<button type="button" class="danger-btn" id="deleteStudyNote">Delete</button>`:""}
+      <div class="spacer"></div>
+      <button type="button" class="ghost-btn editor-close">Cancel</button>
+      <button class="primary-btn" type="submit">Save note</button>
+    </div>`;
+  $("#editorForm").dataset.mode="studyNote";
+  if(note){
+    $("#deleteStudyNote").onclick=()=>{
+      data.studyNotes=(data.studyNotes||[]).filter(n=>n.id!==note.id);
+      save();
+      closeModals();
+      toast("Note deleted");
+    };
+  }
+}
+
 function renderSettings(){
   $("#semesterName").value=data.semester.name||"";
   $("#semesterStart").value=data.semester.start||"";
   $("#semesterEnd").value=data.semester.end||"";
-  $("#notesArea").value=data.notes||"";
   if($("#heroColor")) $("#heroColor").value=data.theme.hero||data.theme.accent;
   $$("[data-widget-color]").forEach(inp=>{
     inp.value=data.theme.widgetColors?.[inp.dataset.widgetColor]||"#ffffff";
@@ -450,12 +509,12 @@ function renderAll(){
   renderAssignments();
   renderExams();
   renderTimetable();
-  renderPeriod();
+  
   renderCalendar();
   renderStickers();
   renderSettings();
   renderLabelEditor();
-  document.body.classList.toggle("privacy",!!data.settings.privacy); updateAuthBrand();
+   updateAuthBrand();
 }
 
 function openQuick(){ $("#quickModal").classList.remove("hidden") }
@@ -463,12 +522,11 @@ function closeModals(){ $$(".modal-backdrop").forEach(m=>m.classList.add("hidden
 function field(name,label,type="text",value="",extra=""){return `<label>${label}<input name="${name}" type="${type}" value="${escapeHtml(value)}" ${extra}></label>`}
 function selectField(name,label,opts,val){return `<label>${label}<select name="${name}">${opts.map(o=>`<option value="${o}" ${o===val?"selected":""}>${o}</option>`).join("")}</select></label>`}
 function openEditor(type,item=null){
-  closeModals();$("#editorModal").classList.remove("hidden");$("#editorTitle").textContent=item?`Edit ${type}`:`New ${type}`;$("#editorEyebrow").textContent=item?"EDIT":"ADD";
+  closeModals();
+  $("#editorForm").dataset.mode="";$("#editorModal").classList.remove("hidden");$("#editorTitle").textContent=item?`Edit ${type}`:`New ${type}`;$("#editorEyebrow").textContent=item?"EDIT":"ADD";
   const v=item||{}; let html=`<input type="hidden" name="id" value="${v.id||""}"><input type="hidden" name="type" value="${type}"><div class="editor-grid">`;
   if(["event","task","class","assignment","exam"].includes(type)) html+=field("title","Title","text",v.title||"","required");
-  if(type==="event"){
-    html+=selectField("category","Category",["Personal","Appointment","Birthday","CCA","Study","Work","Other"],v.category||"Personal")+field("date","Date","date",v.date||todayKey(),"required")+field("time","Start time","time",v.time||"")+field("endTime","End time","time",v.endTime||"")+field("location","Location","text",v.location||"")+`<label>Colour<input name="color" type="color" value="${v.color||COLORS.event}"></label>`;
-  }
+
   if(type==="task"){
     html+=field("date","Due date","date",v.date||"")+field("time","Due time","time",v.time||"")+selectField("priority","Priority",["low","medium","high"],v.priority||"medium")+selectField("category","Category",["School","Personal","CCA","Health","Other"],v.category||"School")+`<label class="full">Notes<textarea name="notes" rows="4">${escapeHtml(v.notes||"")}</textarea></label>`;
   }
@@ -490,19 +548,27 @@ function openEditor(type,item=null){
   if(type==="exam"){
     html+=field("module","Module / code","text",v.module||"")+field("date","Date","date",v.date||todayKey(),"required")+field("time","Start time","time",v.time||"09:00")+field("endTime","End time","time",v.endTime||"")+field("location","Venue","text",v.location||"")+field("weight","Weightage","text",v.weight||"")+`<label class="full">Topics<textarea name="topics" rows="4">${escapeHtml(v.topics||"")}</textarea></label>`;
   }
-  if(type==="period"){
-    html+=field("start","Start date","date",v.start||todayKey(),"required")+field("end","End date","date",v.end||"")+selectField("flow","Flow",["Light","Medium","Heavy"],v.flow||"Medium")+`<label class="full">Symptoms / notes<textarea name="notes" rows="4">${escapeHtml(v.notes||"")}</textarea></label>`;
-  }
+
   html+=`</div><div class="modal-actions">${item?`<button type="button" class="danger-btn" id="deleteItem">Delete</button>`:""}<div class="spacer"></div><button type="button" class="ghost-btn editor-close">Cancel</button><button class="primary-btn" type="submit">Save</button></div>`;
   $("#editorForm").innerHTML=html;
-  if(item)$("#deleteItem").onclick=()=>{if(type==="period")data.periodLogs=data.periodLogs.filter(x=>x.id!==item.id);else data.items=data.items.filter(x=>x.id!==item.id);save();closeModals();toast("Deleted")};
+  if(item)$("#deleteItem").onclick=()=>{data.items=data.items.filter(x=>x.id!==item.id);save();closeModals();toast("Deleted")};
 }
-$("#editorForm").addEventListener("submit",e=>{e.preventDefault();const fd=Object.fromEntries(new FormData(e.currentTarget).entries());const type=fd.type,id=fd.id||uid();delete fd.type;delete fd.id;if(type==="period"){const obj={id,...fd};const idx=data.periodLogs.findIndex(x=>x.id===id);if(idx>=0)data.periodLogs[idx]=obj;else data.periodLogs.push(obj)}else{const existing=data.items.find(x=>x.id===id);const obj={id,type,done:existing?.done||false,...fd};if(type==="class"){
-  obj.weekday=Number(obj.weekday);
-  if(obj.scheduleMode==="Weekly recurring"){
-    obj.repeat="weekly";
-    obj.date="";
-  }else{
+$("#editorForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  if(e.currentTarget.dataset.mode==="studyNote"){
+    const fd=Object.fromEntries(new FormData(e.currentTarget).entries());
+    const id=fd.studyNoteId||uid();
+    const obj={id,subject:(fd.studySubject||"").trim(),topic:(fd.studyTopic||"").trim(),notes:fd.studyNotesText||"",updatedAt:Date.now()};
+    data.studyNotes=data.studyNotes||[];
+    const idx=data.studyNotes.findIndex(n=>n.id===id);
+    if(idx>=0)data.studyNotes[idx]=obj;else data.studyNotes.push(obj);
+    e.currentTarget.dataset.mode="";
+    save();
+    closeModals();
+    toast("Note saved");
+    return;
+  }const fd=Object.fromEntries(new FormData(e.currentTarget).entries());const type=fd.type,id=fd.id||uid();delete fd.type;delete fd.id;
+else{
     obj.repeat="";
   }
   delete obj.scheduleMode;
@@ -522,7 +588,11 @@ function plannerAnswer(q){
 document.addEventListener("click",e=>{
   const v=e.target.closest("[data-view]")?.dataset.view;if(v){switchView(v);return}
   const create=e.target.closest("[data-create]")?.dataset.create;if(create){openEditor(create);return}
-  const edit=e.target.closest("[data-edit]")?.dataset.edit;if(edit){const item=data.items.find(x=>x.id===edit)||data.periodLogs.find(x=>x.id===edit);if(item)openEditor(item.start?"period":item.type,item);return}
+  const editStudy=e.target.closest("[data-edit-study-note]")?.dataset.editStudyNote;
+  if(editStudy){const note=(data.studyNotes||[]).find(n=>n.id===editStudy);if(note)openStudyNoteEditor(note);return}
+  const subj=e.target.closest("[data-subject-filter]")?.dataset.subjectFilter;
+  if(subj){activeSubjectFilter=subj;renderStudyNotes();return}
+  const edit=e.target.closest("[data-edit]")?.dataset.edit;if(edit){const item=data.items.find(x=>x.id===edit)||data.periodLogs.find(x=>x.id===edit);if(item)openEditor(item.type,item);return}
   const toggle=e.target.closest("[data-toggle-task]")?.dataset.toggleTask;if(toggle){const i=data.items.find(x=>x.id===toggle);if(i){i.done=!i.done;save()}return}
   const sticker=e.target.closest("[data-place-sticker]")?.dataset.placeSticker;if(sticker){data.stickerInstances.push({id:uid(),assetId:sticker,x:40,y:180,w:90});save();switchView("home");toast("Sticker added — drag it anywhere");return}
   if(e.target.classList.contains("modal-close")||e.target.classList.contains("editor-close"))closeModals();
@@ -535,8 +605,10 @@ $("#calNext").onclick=()=>{if(calendarView==="month")calCursor.setMonth(calCurso
 $("#calToday").onclick=()=>{calCursor=new Date();renderCalendar()};
 $$("[data-taskfilter]").forEach(b=>b.onclick=()=>{taskFilter=b.dataset.taskfilter;$$("[data-taskfilter]").forEach(x=>x.classList.toggle("active",x===b));renderTasks()});
 $("#quickNote").addEventListener("input",e=>{data.quickNote=e.target.value;localStorage.setItem(KEY,JSON.stringify(data))});
-$("#notesArea").addEventListener("input",e=>{data.notes=e.target.value;localStorage.setItem(KEY,JSON.stringify(data))});
-$("#privacyToggle").onclick=()=>{data.settings.privacy=!data.settings.privacy;save();toast(data.settings.privacy?"Privacy mode on":"Privacy mode off")};
+
+if($("#addStudyNoteBtn")) $("#addStudyNoteBtn").onclick=()=>openStudyNoteEditor();
+if($("#noteSearch")) $("#noteSearch").addEventListener("input",renderStudyNotes);
+
 $("#saveSemester").onclick=()=>{data.semester={name:$("#semesterName").value,start:$("#semesterStart").value,end:$("#semesterEnd").value};save();toast("Term saved")};
 $("#themePreset").onchange=e=>{data.theme.preset=e.target.value;save()};
 $("#accentColor").oninput=e=>{data.theme.preset="custom";data.theme.accent=e.target.value;save()};
