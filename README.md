@@ -93,3 +93,49 @@ Settings now includes a Label Editor. You can rename the app title, subtitle, si
 - Full colour controls for page, sidebar, text, muted text, borders, accent, primary buttons, mobile bars, calendar grid lines, chat button, hero banner, and every dashboard card.
 - Label Editor now covers nearly every major visible header, subheader, navigation item, page title, widget title, and quick-add button.
 - All customisations persist in local storage and are included in backups.
+
+
+## Supabase cloud sync enabled
+
+This build is configured with:
+
+- Project URL: `https://jhzxvoanehgfudlpeooc.supabase.co`
+- Browser publishable key: configured in `app.js`
+- Email/password authentication
+- `planner_data` cloud storage
+- automatic save to Supabase
+- automatic load after login
+- same-account sync across devices
+- localStorage fallback/cache
+
+### Required Supabase table
+
+Run this in Supabase SQL Editor:
+
+```sql
+create table if not exists planner_data (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  data jsonb not null default '{}'::jsonb,
+  updated_at timestamptz default now()
+);
+
+alter table planner_data enable row level security;
+
+create policy "Users can view their own planner"
+on planner_data for select
+using (auth.uid() = user_id);
+
+create policy "Users can insert their own planner"
+on planner_data for insert
+with check (auth.uid() = user_id);
+
+create policy "Users can update their own planner"
+on planner_data for update
+using (auth.uid() = user_id);
+
+create policy "Users can delete their own planner"
+on planner_data for delete
+using (auth.uid() = user_id);
+```
+
+If Supabase says a policy already exists, do not recreate that same policy.

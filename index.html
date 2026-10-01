@@ -41,7 +41,7 @@
 
       <div class="sidebar-footer">
         <button class="sidebar-action" id="privacyToggle">◉ Privacy mode</button>
-        <div class="sync-pill" id="syncPill">● Local mode</div>
+        <div class="sync-pill" id="syncPill">● Connecting…</div>
       </div>
     </aside>
 
@@ -307,6 +307,8 @@
             <div class="button-stack">
               <button class="ghost-btn" id="exportData">Export backup</button>
               <label class="ghost-btn file-btn">Import backup <input id="importData" type="file" accept=".json" hidden></label>
+              <button class="ghost-btn" id="syncNowBtn">Sync now</button>
+              <button class="ghost-btn" id="signOutBtn">Sign out</button>
               <button class="danger-btn" id="resetData">Reset local data</button>
             </div>
           </div>
@@ -364,8 +366,35 @@
       </div>
     </div>
 
+
+    <div class="auth-screen" id="authScreen">
+      <div class="auth-card">
+        <div class="auth-logo">
+          <div class="logo" id="authLogo"><span id="authLogoText">LP</span><img id="authLogoImage" class="hidden" alt="Custom icon"></div>
+        </div>
+        <div class="eyebrow">CLOUD SYNC</div>
+        <h1 id="authTitle">我的一天 ♡</h1>
+        <p id="authSubtitle">我的小小生活簿 ✿</p>
+
+        <div class="auth-tabs">
+          <button class="active" data-auth-tab="signin">Sign in</button>
+          <button data-auth-tab="signup">Create account</button>
+        </div>
+
+        <form id="authForm" class="auth-form">
+          <input id="authEmail" type="email" placeholder="Email" required>
+          <input id="authPassword" type="password" placeholder="Password" minlength="6" required>
+          <button class="primary-btn" id="authSubmit" type="submit">Sign in</button>
+        </form>
+
+        <div class="auth-message" id="authMessage"></div>
+        <p class="auth-small">Use the same account on your phone, iPad and MacBook to sync automatically.</p>
+      </div>
+    </div>
+
     <div id="toast" class="toast"></div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js"></script>
 </body>
 </html>

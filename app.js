@@ -1,4 +1,12 @@
 const KEY="lifePlannerV2";
+const SUPABASE_URL="https://jhzxvoanehgfudlpeooc.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_pZIO3Z71P3aNdfLYHlsyJg_CeDVBwVi";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let currentUser=null;
+let cloudReady=false;
+let cloudSaveTimer=null;
+let lastCloudUpdatedAt=null;
+
 const todayKey=()=>new Date().toISOString().slice(0,10);
 const COLORS={class:"#60a5fa",exam:"#f87171",assignment:"#fbbf24",task:"#a78bfa",event:"#34d399",period:"#f9a8d4",personal:"#94a3b8"};
 const seed={
@@ -101,8 +109,55 @@ function renderLabelEditor(){
 }
 
 
-function load(){try{return {...structuredClone(seed),...JSON.parse(localStorage.getItem(KEY)||"{}")}}catch{return structuredClone(seed)}}
-function save(render=true){localStorage.setItem(KEY,JSON.stringify(data)); if(render)renderAll()}
+function load(){
+  try{return {...structuredClone(seed),...JSON.parse(localStorage.getItem(KEY)||"{}")}}
+  catch{return structuredClone(seed)}
+}
+function save(render=true){
+  localStorage.setItem(KEY,JSON.stringify(data));
+  if(render)renderAll();
+  if(currentUser&&cloudReady) queueCloudSave();
+}
+function queueCloudSave(){
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer=setTimeout(()=>saveCloudData(),500);
+}
+async function saveCloudData(){
+  if(!currentUser)return;
+  const payload={...data};
+  const {error}=await supabaseClient.from("planner_data").upsert({
+    user_id:currentUser.id,
+    data:payload,
+    updated_at:new Date().toISOString()
+  },{onConflict:"user_id"});
+  if(error){
+    $("#syncPill").textContent="● Sync error";
+    console.error(error);
+    return;
+  }
+  lastCloudUpdatedAt=new Date().toISOString();
+  $("#syncPill").textContent="● Synced";
+}
+async function loadCloudData(){
+  if(!currentUser)return;
+  $("#syncPill").textContent="● Syncing…";
+  const {data:row,error}=await supabaseClient.from("planner_data").select("data,updated_at").eq("user_id",currentUser.id).maybeSingle();
+  if(error){
+    console.error(error);
+    $("#syncPill").textContent="● Sync error";
+    return;
+  }
+  if(row?.data){
+    data={...structuredClone(seed),...row.data};
+    localStorage.setItem(KEY,JSON.stringify(data));
+    lastCloudUpdatedAt=row.updated_at||null;
+    renderAll();
+  }else{
+    await saveCloudData();
+  }
+  cloudReady=true;
+  $("#syncPill").textContent="● Synced";
+}
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const fmt=(d,o={})=>new Date(d+"T12:00:00").toLocaleDateString(undefined,o);
 const dt=(date,time="00:00")=>new Date(`${date}T${time||"00:00"}:00`);
@@ -307,6 +362,56 @@ function renderSettings(){
     inp.value=data.theme[k]||({bg:"#f4f6f8",sidebar:"#0f172a",text:"#111827",muted:"#6b7280",line:"#e5e7eb",accent:"#111827",primary:"#111827",primaryText:"#ffffff",sidebarText:"#cbd5e1",sidebarActive:"#1e293b",mobileBar:"#ffffff",calendarLine:"#e5e7eb",chatFab:"#111827",hero:"#111827"}[k]);
   });
 }
+
+let authMode="signin";
+
+function updateAuthBrand(){
+  if($("#authTitle")) $("#authTitle").textContent=label("brandTitle","我的一天 ♡");
+  if($("#authSubtitle")) $("#authSubtitle").textContent=label("brandSubtitle","我的小小生活簿 ✿");
+  const img=$("#authLogoImage"),txt=$("#authLogoText");
+  if(data.theme?.icon){
+    img.src=data.theme.icon;img.classList.remove("hidden");txt.classList.add("hidden");
+  }else{
+    img.classList.add("hidden");txt.classList.remove("hidden");
+  }
+}
+
+function showAuth(){
+  updateAuthBrand();
+  $("#authScreen").classList.remove("hidden");
+}
+function hideAuth(){
+  $("#authScreen").classList.add("hidden");
+}
+function setAuthMode(mode){
+  authMode=mode;
+  $$("[data-auth-tab]").forEach(b=>b.classList.toggle("active",b.dataset.authTab===mode));
+  $("#authSubmit").textContent=mode==="signin"?"Sign in":"Create account";
+  $("#authMessage").textContent="";
+}
+async function initAuth(){
+  const {data:{session}}=await supabaseClient.auth.getSession();
+  if(session?.user){
+    currentUser=session.user;
+    hideAuth();
+    await loadCloudData();
+  }else{
+    showAuth();
+  }
+  supabaseClient.auth.onAuthStateChange(async(event,session)=>{
+    if(session?.user){
+      currentUser=session.user;
+      hideAuth();
+      await loadCloudData();
+    }else{
+      currentUser=null;
+      cloudReady=false;
+      $("#syncPill").textContent="● Signed out";
+      showAuth();
+    }
+  });
+}
+
 function renderAll(){
   applyTheme();
   applyLabels();
@@ -320,7 +425,7 @@ function renderAll(){
   renderStickers();
   renderSettings();
   renderLabelEditor();
-  document.body.classList.toggle("privacy",!!data.settings.privacy)
+  document.body.classList.toggle("privacy",!!data.settings.privacy); updateAuthBrand();
 }
 
 function openQuick(){ $("#quickModal").classList.remove("hidden") }
@@ -437,5 +542,51 @@ $("#chatForm").onsubmit=e=>{e.preventDefault();const inp=$("#chatInput"),q=inp.v
 let draggedWidget=null;
 $$(".widget").forEach(w=>{w.draggable=true;w.addEventListener("dragstart",()=>draggedWidget=w);w.addEventListener("dragover",e=>e.preventDefault());w.addEventListener("drop",e=>{e.preventDefault();if(!draggedWidget||draggedWidget===w)return;const grid=$("#dashboardGrid");grid.insertBefore(draggedWidget,w);data.dashboardOrder=[...grid.querySelectorAll(".widget")].map(x=>x.dataset.widget);localStorage.setItem(KEY,JSON.stringify(data))})});
 
+
+$$("[data-auth-tab]").forEach(b=>b.onclick=()=>setAuthMode(b.dataset.authTab));
+$("#authForm").onsubmit=async e=>{
+  e.preventDefault();
+  const email=$("#authEmail").value.trim();
+  const password=$("#authPassword").value;
+  $("#authMessage").textContent="";
+  $("#authSubmit").disabled=true;
+  try{
+    if(authMode==="signup"){
+      const {data:res,error}=await supabaseClient.auth.signUp({email,password});
+      if(error) throw error;
+      if(res.session){
+        currentUser=res.user;
+        hideAuth();
+        await loadCloudData();
+      }else{
+        $("#authMessage").style.color="#047857";
+        $("#authMessage").textContent="Account created. Check your email if confirmation is required.";
+      }
+    }else{
+      const {data:res,error}=await supabaseClient.auth.signInWithPassword({email,password});
+      if(error) throw error;
+      currentUser=res.user;
+      hideAuth();
+      await loadCloudData();
+    }
+  }catch(err){
+    $("#authMessage").style.color="#b91c1c";
+    $("#authMessage").textContent=err.message||"Sign-in failed";
+  }finally{
+    $("#authSubmit").disabled=false;
+  }
+};
+if($("#signOutBtn")) $("#signOutBtn").onclick=async()=>{
+  await supabaseClient.auth.signOut();
+  toast("Signed out");
+};
+if($("#syncNowBtn")) $("#syncNowBtn").onclick=async()=>{
+  if(!currentUser){showAuth();return}
+  await loadCloudData();
+  await saveCloudData();
+  toast("Synced");
+};
+
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 renderAll();
+initAuth();
